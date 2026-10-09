@@ -1,0 +1,33 @@
+== 2026-10-09T12:50:46.5674537-07:00 branch jarvis/mcp-path-token
+-- npm run typecheck
+
+> typecheck
+> tsc --noEmit
+
+exit 0
+-- npm test
+
+> test
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/rmadrid/source/repos/project-jarvis
+
+ Γ£ô test/shortcuts.test.ts (11 tests) 131ms
+ Γ£ô test/swarm.test.ts (13 tests) 289ms
+ Γ£ô test/loop.test.ts (11 tests) 243ms
+ Γ£ô test/mcp.test.ts (11 tests) 353ms
+
+ Test Files  4 passed (4)
+      Tests  46 passed (46)
+   Start at  12:50:51
+   Duration  2.26s (transform 932ms, setup 0ms, collect 2.59s, tests 1.01s, environment 1ms, prepare 729ms)
+
+exit 0
+-- npm run scan:secrets
+
+> scan:secrets
+> tsx scripts/scan-secrets.ts
+
+scan:secrets ok (60 files)
+exit 0

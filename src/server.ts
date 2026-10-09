@@ -40,6 +40,8 @@ export function createApp(db: DB, deps: Deps) {
 
   app.post("/mcp", express.json({ limit: "1mb" }), (req, res) => handleMcp(db, deps, req, res));
   app.get("/mcp", (_req, res) => res.status(405).end());
+  app.post("/mcp/:agentToken", express.json({ limit: "1mb" }), (req, res) => handleMcp(db, deps, req, res));
+  app.get("/mcp/:agentToken", (_req, res) => res.status(405).end());
 
   const api = express.Router();
   api.use(express.json({ limit: "256kb" }), owner);
