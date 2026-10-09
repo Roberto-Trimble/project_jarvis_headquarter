@@ -33,9 +33,11 @@ Builders write to GitHub only through this connector. The Jarvis service's own G
 **No agent gets merge.** Merging goes through the Jarvis `merge_pull_request` tool, which refuses
 until you approve the release on the board and CI is green.
 
-**Jarvis tools** (the message board and Token Police) come from the Jarvis service's `/mcp`
-endpoint, registered in Studio as an `MCP` tool with a custom header
-`Authorization: Bearer <that agent's token>`. The service decides who called from the token,
+**Jarvis tools** (the message board and Token Police) come from the Jarvis service's MCP
+endpoint. Studio's custom MCP form can't set an `Authorization` header, so register each agent's
+tool with the URL `https://<host>/mcp/<that agent's token>` and no authentication. Clients that can
+send headers may use `/mcp` with `Authorization: Bearer <token>` instead; a path token wins over
+any header. The URL is a secret: keep it out of logs, screenshots, and chat. The service decides who called from the token,
 so each agent needs its own token (`JARVIS_AGENT_TOKENS=project-manager:…,planner:…,builder:…,verifier:…,curator:…`).
 All builder instances share the `builder` token.
 
