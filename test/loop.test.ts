@@ -1,6 +1,8 @@
 import { createHmac } from "node:crypto";
+import type { AddressInfo } from "node:net";
 import { describe, expect, it } from "vitest";
 import { decideApproval } from "../src/approvals.ts";
+import { createApp } from "../src/server.ts";
 import { stopAll } from "../src/stop.ts";
 import { startStory } from "../src/stories.ts";
 import { callTool } from "../src/tools.ts";
@@ -100,6 +102,21 @@ describe("STOP ALL", () => {
     expect(gateway.ciCancels).toBe(1);
     expect((await callTool("get_story", { storyId: "101" }, { db, deps, agent: "builder" })).result).toMatchObject({ status: "stopped" });
     expect(await startStory(db, deps, "101", "owner", { requireTag: false })).toEqual({ started: false, reason: "stopped" });
+  });
+
+  it("/healthz needs no auth and reports the stop flag", async () => {
+    const { db, deps } = await setup();
+    deps.boardToken = "board-token-for-test";
+    const server = createApp(db, deps).listen(0);
+    try {
+      const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+      expect(await (await fetch(`${url}/healthz`)).json()).toEqual({ ok: true, stopped: false });
+      await stopAll(db, deps, "owner");
+      expect(await (await fetch(`${url}/healthz`)).json()).toEqual({ ok: true, stopped: true });
+      expect((await fetch(`${url}/api/state`)).status).toBe(401);
+    } finally {
+      server.close();
+    }
   });
 
   it("still stops locally when Studio is unreachable", async () => {

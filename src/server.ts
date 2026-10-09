@@ -25,6 +25,8 @@ export function createApp(db: DB, deps: Deps) {
     res.status(401).json({ error: "unauthorized" });
   };
 
+  app.get("/healthz", (_req, res) => res.json({ ok: true, stopped: isStopped(db) }));
+
   // Webhooks need the raw body for signature checks.
   app.post("/hooks/github", express.raw({ type: "*/*", limit: "2mb" }), async (req, res) => {
     const body = req.body as Buffer;
