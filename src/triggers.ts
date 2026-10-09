@@ -75,6 +75,7 @@ export function onLocalToolCall(db: DB, runId: string, tool: string, args: any):
   if (tool === "request_approval") {
     const kind = String(args?.kind) as ApprovalKind;
     if (!APPROVAL_KINDS.includes(kind)) return { error: "invalid_kind" };
+    if (kind === "profile") return { error: "use_propose_profile" };
     const row = requestApproval(db, "project-manager", {
       storyId: run.story_id, runId, kind, summary: String(args?.summary ?? ""), links: Array.isArray(args?.links) ? args.links.map(String) : [],
     });

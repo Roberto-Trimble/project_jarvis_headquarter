@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { audit, now, type DB } from "./db.ts";
+import { decideProfile } from "./profiles.ts";
 import type { Studio } from "./studio.ts";
 
-export const APPROVAL_KINDS = ["sketch", "budget", "release", "skill"] as const;
+export const APPROVAL_KINDS = ["sketch", "budget", "release", "skill", "profile"] as const;
 export type ApprovalKind = (typeof APPROVAL_KINDS)[number];
 
 export type ApprovalRow = {
+  /** For kind `profile`, story_id holds the profile ID: profile cards belong to no story. */
   id: string; story_id: string; run_id: string | null; kind: ApprovalKind; summary: string; links: string;
   status: "pending" | "approved" | "denied"; decided_by: string | null; note: string | null; created: string; decided: string | null;
 };
@@ -32,6 +34,7 @@ export async function decideApproval(db: DB, studio: Studio, owner: string, id: 
   db.prepare("UPDATE approvals SET status = ?, decided_by = ?, note = ?, decided = ? WHERE id = ?")
     .run(decision, owner, note ?? null, now(), id);
   audit(db, owner, `approval_${decision}`, row.story_id, { id, kind: row.kind });
+  if (row.kind === "profile") decideProfile(db, owner, row.story_id, decision);
   if (row.run_id) {
     db.prepare("UPDATE runs SET status = 'running', waiting_on = NULL, updated = ? WHERE id = ?").run(now(), row.run_id);
     await studio.resumeRun(row.run_id, { approvalId: id, decision, note: note ?? null });

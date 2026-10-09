@@ -2,10 +2,12 @@ import { FakeBrake } from "../src/brake.ts";
 import { openDb } from "../src/db.ts";
 import { loadPolicy, type Deps } from "../src/deps.ts";
 import { FakeGateway } from "../src/gateway.ts";
+import { seedGen0 } from "../src/profiles.ts";
 import { FakeStudio } from "../src/studio.ts";
 
 export async function setup() {
   const db = await openDb(":memory:");
+  seedGen0(db);
   const studio = new FakeStudio();
   const gateway = new FakeGateway();
   const brake = new FakeBrake();

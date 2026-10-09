@@ -1,11 +1,13 @@
 import { join } from "node:path";
 import { openDb } from "./db.ts";
 import { depsFromEnv } from "./deps.ts";
+import { seedGen0 } from "./profiles.ts";
 import { createApp } from "./server.ts";
 import { expireStale } from "./shortcuts.ts";
 
 const deps = depsFromEnv();
 const db = await openDb(join(process.env.JARVIS_DATA_DIR || "data", "jarvis.sqlite"));
+seedGen0(db);
 const port = Number(process.env.PORT || 8787);
 
 // Scheduled housekeeping: retire stale shortcuts. The reuse scan runs on each board refresh.

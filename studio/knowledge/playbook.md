@@ -16,6 +16,7 @@ awaiting_release → merged → done`, plus `blocked` and `stopped` from any sta
 Repeated failures (the same check failing the same way) go to the owner on the board as an
 exception card, not to another retry.
 - `skill` — before an AgentBrake skill draft is installed (owner approves on the board).
+- `profile` — before a new builder profile (generation) can be loaded. Raised by `propose_profile`.
 
 ## Status vocabulary
 `passed`, `failed`, `blocked`, `not_tested`. Absence of a result is `not_tested`.

@@ -1,5 +1,10 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { now, type DB } from "../src/db.ts";
+import { decideApproval, requestApproval } from "../src/approvals.ts";
+import { now, openDb, type DB } from "../src/db.ts";
+import { getProfile, seedGen0 } from "../src/profiles.ts";
 import { STAGES } from "../src/stories.ts";
 import { callTool } from "../src/tools.ts";
 import { setup, SHA } from "./helpers.ts";
@@ -22,6 +27,37 @@ describe("Council removed", () => {
     const { db, deps } = await setup();
     const r = await callTool("update_story_state", { storyId: "101", stage: "council" }, { db, deps, agent: "project-manager" });
     expect(r.result).toMatchObject({ reason: "invalid_arguments" });
+  });
+});
+
+describe("profiles", () => {
+  it("seeds builder-gen0 once, across restarts", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "jarvis-test-"));
+    try {
+      const file = join(dir, "jarvis.sqlite");
+      seedGen0(await openDb(file));
+      const again = await openDb(file);
+      seedGen0(again);
+      const rows = again.prepare("SELECT id, generation, specialty, status FROM profiles").all();
+      expect(rows).toEqual([{ id: "builder-gen0", generation: 0, specialty: "general", status: "approved" }]);
+      expect(getProfile(again, "builder-gen0")?.instructions).toMatch(/^No accumulated tips yet\./);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("a profile approval card approves or rejects the profile", async () => {
+    const { db, studio } = await setup();
+    for (const id of ["builder-gen1-a", "builder-gen1-b"]) {
+      db.prepare(`INSERT INTO profiles (id, generation, parent_id, specialty, instructions, tip_ids, skill_ids, status, created)
+        VALUES (?, 1, 'builder-gen0', 'general', 'x', '[]', '[]', 'proposed', ?)`).run(id, now());
+    }
+    const a = requestApproval(db, "curator", { storyId: "builder-gen1-a", runId: null, kind: "profile", summary: "gen 1", links: [] });
+    const b = requestApproval(db, "curator", { storyId: "builder-gen1-b", runId: null, kind: "profile", summary: "gen 1", links: [] });
+    await decideApproval(db, studio, "owner", a.id, "approved");
+    await decideApproval(db, studio, "owner", b.id, "denied");
+    expect(getProfile(db, "builder-gen1-a")?.status).toBe("approved");
+    expect(getProfile(db, "builder-gen1-b")?.status).toBe("rejected");
   });
 });
 
