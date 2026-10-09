@@ -1,4 +1,4 @@
-// Create the four Jarvis agents in Trimble Agent Studio with POST /v2/agents.
+// Create the five Jarvis agents in Trimble Agent Studio with POST /v2/agents.
 //
 //   npx tsx scripts/create-agents.ts            dry run: prints what it would send
 //   npx tsx scripts/create-agents.ts --apply    creates the agents
@@ -19,11 +19,13 @@ const AGENTS = [
     description: "Checks a pull request against the acceptance checks; read-only. Subagent of Jarvis PM." },
   { key: "planner", name: "Jarvis Planner", prompt: "studio/agents/planner.md", roleKey: "planner",
     description: "Researches the repo and turns a GitHub issue into a small, testable plan; read-only. Subagent of Jarvis PM." },
+  { key: "curator", name: "Jarvis Curator", prompt: "studio/agents/curator.md", roleKey: "curator",
+    description: "Distills verified board tips into the next builder profile for owner approval; read-only. Subagent of Jarvis PM." },
   { key: "project-manager", name: "Jarvis PM", prompt: "studio/agents/project-manager.md", roleKey: "project_manager",
-    description: "Project manager for jarvis-labeled GitHub issues. Calls the Planner, Builder, and Verifier as subagents." },
+    description: "Project manager for jarvis-tagged stories. Calls the Planner, Builder instances, Verifier, and Curator as subagents." },
 ];
 
-const TEMPERATURE: Record<string, number> = { builder: 0.2, verifier: 0.1, planner: 0.3, project_manager: 0.3 };
+const TEMPERATURE: Record<string, number> = { builder: 0.2, verifier: 0.1, planner: 0.3, curator: 0.2, project_manager: 0.3 };
 const STATE_FILE = "config/studio-agents.json";
 
 function modelFor(roleKey: string): string {
@@ -50,13 +52,13 @@ function body(a: (typeof AGENTS)[number]) {
 async function getToken(): Promise<string> {
   if (process.env.STUDIO_TOKEN) return process.env.STUDIO_TOKEN;
   const id = process.env.TID_CLIENT_ID;
-  const secret = process.env.TID_CLIENT_SECRET;
-  if (!id || !secret) throw new Error("Set STUDIO_TOKEN, or TID_CLIENT_ID and TID_CLIENT_SECRET, in .env.");
+  const clientKey = process.env.TID_CLIENT_SECRET;
+  if (!id || !clientKey) throw new Error("Set STUDIO_TOKEN, or TID_CLIENT_ID and TID_CLIENT_SECRET, in .env.");
   const url = process.env.TID_TOKEN_URL || "https://stage.id.trimblecloud.com/oauth/token";
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`,
+      authorization: `Basic ${Buffer.from(`${id}:${clientKey}`).toString("base64")}`,
       "content-type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({ grant_type: "client_credentials", scope: "openid agents" }),

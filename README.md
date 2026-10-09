@@ -1,9 +1,10 @@
 # Project Jarvis
 
 Jarvis is an AI product team for a single Trimble product, built on Trimble Agent Studio.
-A Project Manager agent and three subagents turn GitHub issues into tested pull requests,
-with an independent verifier, human approval for merges, Token Police for cost, and a
-message board (Shortcut Board) so the team gets cheaper as it works.
+A Project Manager agent and its subagents turn stories into tested pull requests: parallel
+builder instances, an independent verifier, and a curator that turns what the builders learned
+into the next generation's builder profile. Human approval for merges and profiles, Token Police
+for cost, and a message board (Shortcut Board) so the team gets cheaper as it works.
 
 Full design: [docs/PROJECT_JARVIS.md](docs/PROJECT_JARVIS.md). Ported from the
 operating model of [dexter-hq](https://github.com/Roberto-Madrid/dexter-hq).
@@ -13,7 +14,7 @@ operating model of [dexter-hq](https://github.com/Roberto-Madrid/dexter-hq).
 - **You (the owner)** set priorities, approve sketches, releases, budgets, and skills.
 - **Project Manager** (Studio agent) is the only agent that assigns work. It dispatches
   role agents as subagents and never does the work itself.
-- **Subagents** (planner, builder, verifier) do bounded work on one issue. A designer comes later, for new screens.
+- **Subagents** (planner, builder instances, verifier, curator) do bounded work on one story. A designer comes later, for new screens.
 - **Jarvis service** (this repo) holds what Studio can't: triggers, local-tool results (approvals, CI waits),
   shared state, the Shortcut Board, AgentBrake, STOP ALL, and the command board. Agents reach
   Azure Boards and GitHub through MCP servers registered directly in Studio.
@@ -28,7 +29,8 @@ deployed agent until it is created in Studio and its run is observed.
 | `AGENTS.md` | Short identity, startup instructions, and rules for any agent working on this repo |
 | `handoff.md` | Entry point for a fresh session: where things stand and open owner decisions |
 | `docs/` | Design (`PROJECT_JARVIS.md`), `CONSTITUTION.md`, third-party notices |
-| `studio/agents/` | System prompts for each Studio agent (PM, planner, builder, verifier) |
+| `studio/agents/` | System prompts for each Studio agent (PM, planner, builder, verifier, curator) |
+| `scripts/deploy-azure.sh` | Deploys the service to Azure App Service (the owner runs it) |
 | `studio/knowledge/` | Team playbook for the PM's Knowledge Library |
 | `config/role-sheet.yaml` | Model family per role, from Trimble's model gateway |
 | `config/jarvis-policy.json` | Budgets, concurrency, retry limits (per-agent tool allowlists live in Studio, see `studio/README.md`) |

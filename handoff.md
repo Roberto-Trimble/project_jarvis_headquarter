@@ -43,6 +43,30 @@ Working and tested offline (`npm test`: 35 passing; `npm run typecheck` clean; `
 Runs on fakes for Studio, AgentBrake, and Azure Boards/GitHub unless the env vars in
 `.env.example` are set.
 
+Prompts (`studio/agents/`): the Builder is the swarm builder (`get_profile` → `claim_task` →
+connector branch and PR with `AB#`, `profileId`, `instanceId` → `report_pr`; tips verified by CI
+runs). New `curator.md`. The PM admits each builder run and passes `storyId`, `profileId`,
+`reservationId`; at most three builders at once; one event per run; release approval, then
+`merge_pull_request` and `complete_story`. `scripts/create-agents.ts` now creates the Curator too.
+
+## Changes on 2026-10-09 (branch `builder-swarm`)
+
+One commit per work item from the builder-swarm task, on top of a baseline commit of the scaffold
+(the repo had no commits). Not pushed. Parts of the task that were already true and needed no change:
+- No `studio/agents/council-*.md` files existed, and `config/role-sheet.yaml` had no `council` block
+  or `council_excludes_builder_family` rule.
+- `config/jarvis-policy.json` lists no GitHub tools, so there were no write tools to remove. Per-agent
+  GitHub allowlists live in Studio (`studio/README.md`).
+- `scan:secrets` failed before this work on `scripts/create-agents.ts` (`const secret = …` matched the
+  key-value secret shape). The variable is renamed; the scan is clean.
+
+**Owner decision:** `docs/CONSTITUTION.md` article 3 says every GitHub action goes through the Jarvis
+tool gateway. Builders now write through Studio's GitHub connector, so article 3 no longer matches
+the design. Agents may not edit that file.
+
+Evidence: `.agent-work/evidence/2026-10-09-*` (baseline scan and tests; typecheck, tests, secret scan,
+deploy script check and dry run, startup and board check).
+
 ## Deploy (owner)
 
 `bash scripts/deploy-azure.sh [resource-group] [app-name] [region]` (defaults `jarvis-rg`,

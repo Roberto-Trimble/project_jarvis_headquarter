@@ -19,7 +19,7 @@ Studio hosts the agents and their knowledge. It does not run code, store shared 
 | Project Manager | Studio agent | Orchestration instructions as its system prompt; the team playbook in a Knowledge Library |
 | Swarm | Studio agents, one per role | The Project Manager dispatches them as subagents through the Agent Service. Each agent picks its model from Trimble's model gateway (Gemini, OpenAI, Claude, Meta); the verifier uses a different family from the builder |
 | Stories | Azure Boards | Agents read and update work items through the tool gateway |
-| Code, pull requests, CI | GitHub and GitHub Actions | The builder creates a branch, commits file changes, and opens the pull request through the tool gateway. There is no sandbox in Studio, so stories stay small. CI runs on the pull request |
+| Code, pull requests, CI | GitHub and GitHub Actions | Builder instances create their branch, commit file changes, and open the pull request through Studio's GitHub connector. There is no sandbox in Studio, so stories stay small. CI runs on the pull request |
 | Tool gateway | Jarvis service, registered in Studio as one MCP server | Hosts the official Azure DevOps and GitHub MCP servers, limited to the tools agents need. Real credentials stay in the Jarvis service |
 | Triggers | Jarvis service | Receives Azure Boards service hooks and GitHub webhooks, then starts or resumes agent runs |
 | Human approval | A local tool, `request_approval` | The run suspends until you click Approve or Deny on the command board, which submits the tool's result |
@@ -46,7 +46,8 @@ flowchart TD
     Swarm --> KB
     Swarm -->|"MCP tools"| JS
     JS -->|"work items"| AB
-    JS -->|"branches, commits, pull requests"| GH
+    Swarm -->|"branches, commits, pull requests (Studio's GitHub connector)"| GH
+    JS -->|"merge after release approval"| GH
     GH --> CI["GitHub Actions: tests and checks"]
     JS -->|"ingest verified posts"| KB
     JS --> Board
@@ -86,8 +87,8 @@ sequenceDiagram
     AB->>J: service hook: story tagged jarvis
     J->>J: dedupe, budget and run-slot check
     J->>PM: start the Project Manager run
-    PM->>J: tools: read story, plan, write code
-    J->>GH: branch, commits, pull request with AB#id
+    PM->>J: tools: read story, admit builder runs
+    PM->>GH: builder instances: branch, commits, pull request with AB#id (Studio's GitHub connector)
     PM->>J: wait_for_ci (run suspends)
     GH->>J: webhook: CI finished
     J->>PM: resume with CI results

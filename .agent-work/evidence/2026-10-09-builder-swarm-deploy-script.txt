@@ -1,0 +1,37 @@
+$ bash -n scripts/deploy-azure.sh
+exit 0
+
+$ dry run with stub az and zip (token values masked)
+Resource group demo-rg, app demo-app, region eastus
+Generated tokens for: builder curator designer planner project-manager verifier
+
+Deployed.
+  Board:   https://demo.azurewebsites.net/
+  Health:  https://demo.azurewebsites.net/healthz
+  MCP URL: https://demo.azurewebsites.net/mcp   (register in Studio with header Authorization: Bearer <that agent's token>)
+
+Read the tokens back (prints secrets to your terminal):
+  az webapp config appsettings list -g "demo-rg" -n "demo-app" --query "[?name=='JARVIS_AGENT_TOKENS'].value" -o tsv
+  az webapp config appsettings list -g "demo-rg" -n "demo-app" --query "[?name=='JARVIS_BOARD_TOKEN'].value" -o tsv
+--- az and zip calls
+az group create --name demo-rg --location eastus -o none
+az appservice plan create --resource-group demo-rg --name demo-app-plan --is-linux --sku B1 --number-of-workers 1 -o none
+az webapp show --resource-group demo-rg --name demo-app -o none
+az webapp create --resource-group demo-rg --plan demo-app-plan --name demo-app --runtime NODE:22-lts -o none
+az webapp config set --resource-group demo-rg --name demo-app --always-on true --startup-file npm start -o none
+az webapp config appsettings list --resource-group demo-rg --name demo-app --query [].name -o tsv
+az webapp config appsettings set --resource-group demo-rg --name demo-app --settings @/tmp/tmp.zy7L3pvmPP -o none
+zip -qr /tmp/tmp.EJhBBVr06h.zip . -x node_modules/* data/* .git/* .env .env.* *.sqlite *.sqlite-*
+az webapp deploy --resource-group demo-rg --name demo-app --src-path /tmp/tmp.EJhBBVr06h.zip --type zip -o none
+az webapp show --resource-group demo-rg --name demo-app --query defaultHostName -o tsv
+--- settings file, values masked
+{
+  "JARVIS_BOARD_TOKEN": "<64-hex>",
+  "JARVIS_AGENT_TOKENS": "builder:<64-hex>,curator:<64-hex>,designer:<64-hex>,planner:<64-hex>,project-manager:<64-hex>,verifier:<64-hex>",
+  "JARVIS_DATA_DIR": "/home/data",
+  "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
+  "WEBSITES_ENABLE_APP_SERVICE_STORAGE": "true"
+}
+--- settings file is valid JSON:
+yes
+lines holding generated tokens: 2
