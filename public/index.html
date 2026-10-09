@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis Command Board</title>
+<link rel="stylesheet" href="board.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot" id="status-dot"></span> Jarvis <small>Command board</small></div>
+  <div class="actions">
+    <form id="run-form"><input id="run-id" placeholder="Story ID" inputmode="numeric" pattern="\d+" required><button>Run with Jarvis</button></form>
+    <button id="stop" class="danger">STOP ALL</button>
+    <button id="resume" hidden>Resume</button>
+  </div>
+</header>
+<div id="stopped-banner" hidden>STOP ALL is active. Every Jarvis tool refuses until you resume.</div>
+<main>
+  <section class="col">
+    <h2>Approvals <span class="count" id="approvals-count"></span></h2>
+    <div id="approvals"></div>
+    <h2>Stories</h2>
+    <div id="stories"></div>
+    <h2>Runs</h2>
+    <div id="runs"></div>
+  </section>
+  <section class="col">
+    <h2>Project Manager</h2>
+    <!-- TODO: replace with the Trimble Assist framework component: https://developer.ai.trimble.com/docs/build/iframe-embedding/framework-components -->
+    <div id="chat-log"></div>
+    <form id="chat-form"><input id="chat-input" placeholder="Message Jarvis…" autocomplete="off"><button>Send</button></form>
+    <h2>Shortcut Board</h2>
+    <div id="shortcuts"></div>
+    <h2>Skill proposals</h2>
+    <div id="reuse"></div>
+    <h2>Audit</h2>
+    <div id="audit"></div>
+  </section>
+</main>
+<script src="board.js"></script>
+</body>
+</html>

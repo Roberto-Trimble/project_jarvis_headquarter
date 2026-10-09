@@ -1,0 +1,16 @@
+# Model family per Studio agent, from Trimble's model gateway.
+# The only file allowed to name models. Exact model IDs are set in Studio per agent;
+# record them here once chosen.
+version: 2
+approved_by: owner
+project_manager: { family: claude, tier: sonnet-latest, model: TBD }
+roles:
+  planner:  { family: gemini, tier: flash, model: gemini-3.8-flash }  # move to Pro if plans miss files or checks
+  builder:  { family: claude, tier: sonnet-latest, model: TBD }
+  # The verifier is the only independent check now that the Council is dropped,
+  # so it uses a different family from the builder.
+  verifier: { family: openai, tier: gpt-latest-reasoning, model: TBD }
+  designer: { family: claude, model: TBD }  # later, for new screens
+rules:
+  verifier_differs_from_builder_family: true
+  automatic_paid_fallback: false
