@@ -20,6 +20,31 @@ async function api(path, body) {
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const usd = (micro) => `$${(micro / 1e6).toFixed(2)}`;
 const list = (el, items, render, empty) => { $(el).innerHTML = items.length ? items.map(render).join("") : `<p class="empty">${empty}</p>`; };
+// Profile approvals and their audit entries carry a profile ID where stories carry a work item ID.
+const ref = (id) => (/^\d+$/.test(String(id)) ? `AB#${esc(id)}` : esc(id));
+const num = (v) => (v === null || v === undefined ? `<span title="unknown">—</span>` : Number.isInteger(v) ? v : v.toFixed(1));
+
+/** Line diff (longest common subsequence) of the parent's instructions against the proposal's. */
+function lineDiff(before, after) {
+  const x = before ? before.split("\n") : [], y = after.split("\n");
+  const L = Array.from({ length: x.length + 1 }, () => new Array(y.length + 1).fill(0));
+  for (let i = x.length - 1; i >= 0; i--) for (let j = y.length - 1; j >= 0; j--)
+    L[i][j] = x[i] === y[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = [];
+  for (let i = 0, j = 0; i < x.length || j < y.length;) {
+    if (i < x.length && j < y.length && x[i] === y[j]) { out.push(`<span>  ${esc(x[i])}</span>`); i++; j++; }
+    else if (i < x.length && (j >= y.length || L[i + 1][j] >= L[i][j + 1])) out.push(`<span class="del">- ${esc(x[i++])}</span>`);
+    else out.push(`<span class="add">+ ${esc(y[j++])}</span>`);
+  }
+  return out.join("\n");
+}
+
+const profileBlock = (p) => !p ? "" : `
+    <div class="meta">Generation ${p.generation} · ${esc(p.specialty)} · parent ${esc(p.parentId)}</div>
+    <pre class="diff">${lineDiff(p.parentInstructions, p.instructions)}</pre>
+    <div class="meta">Tips included (${p.tips.length})</div>
+    ${p.tips.map((t) => `<div class="tip"><strong>${esc(t.title ?? t.id)}</strong> <span class="tag ${esc(t.status)}">${esc(t.status)}</span>${t.body ? `<br>${esc(t.body)}` : ""}</div>`).join("")}
+    ${p.skills.length ? `<div class="meta">Skills: ${p.skills.map(esc).join(", ")}</div>` : ""}`;
 
 function render(s) {
   $("status-dot").classList.toggle("stopped", s.stopped);
@@ -29,11 +54,17 @@ function render(s) {
   $("approvals-count").textContent = s.approvals.length || "";
 
   list("approvals", s.approvals, (a) => `
-    <div class="card"><div class="row"><strong>${esc(a.kind)} · AB#${esc(a.story_id)}</strong><span class="meta">${new Date(a.created).toLocaleString()}</span></div>
+    <div class="card"><div class="row"><strong>${esc(a.kind)} · ${ref(a.story_id)}</strong><span class="meta">${new Date(a.created).toLocaleString()}</span></div>
     <p>${esc(a.summary)}</p>
+    ${profileBlock(a.profile)}
     ${JSON.parse(a.links || "[]").map((l) => `<a href="${esc(l)}" target="_blank" rel="noopener">${esc(l)}</a>`).join("<br>")}
-    <div class="btns"><button data-approve="${a.id}">Approve</button><button class="ghost" data-deny="${a.id}">Deny</button></div></div>`,
+    <div class="btns"><button data-approve="${a.id}">Approve</button><button class="ghost" data-deny="${a.id}">${a.kind === "profile" ? "Reject" : "Deny"}</button></div></div>`,
     "Nothing waiting on you.");
+
+  $("generations").innerHTML = `<table><thead><tr><th>Gen</th><th>Profiles</th><th>Instances</th><th>PRs</th><th>Merged</th><th>CI runs</th><th>CI fails</th><th>Fails/PR</th><th>Tips used</th><th>Posted</th><th>Verified</th><th>Min to green</th></tr></thead><tbody>
+    ${s.generations.map((g) => `<tr><td>${g.generation}</td><td>${g.profiles.map((p) => `<span class="tag ${esc(p.status)}" title="${esc(p.specialty)}">${esc(p.profileId)}</span>`).join(" ")}</td>
+      <td>${num(g.instances)}</td><td>${num(g.prsOpened)}</td><td>${num(g.merged)}</td><td>${num(g.ciRuns)}</td><td>${num(g.ciFailures)}</td><td>${num(g.failuresPerPr)}</td>
+      <td>${num(g.tipsUsed)}</td><td>${num(g.tipsPosted)}</td><td>${num(g.tipsVerified)}</td><td>${num(g.medianMinutesToFirstGreen)}</td></tr>`).join("")}</tbody></table>`;
 
   list("stories", s.stories, (st) => `
     <div class="card"><div class="row"><strong>AB#${esc(st.id)} ${esc(st.title)}</strong><span class="tag ${esc(st.stage)}">${esc(st.stage)}</span></div>
@@ -53,7 +84,7 @@ function render(s) {
 
   list("reuse", s.reuseCandidates, (c) => `<div class="card"><div class="row"><strong>${esc(c.operation)}</strong><span class="tag">${c.draftable ? "draftable" : "needs recipe"}</span></div><div class="meta">${c.successes} successes across ${c.distinctAgents} agents</div></div>`, "No repeated work detected yet.");
 
-  list("audit", s.audit, (e) => `<div class="meta">${new Date(e.at).toLocaleTimeString()} · <strong>${esc(e.actor)}</strong> ${esc(e.action)}${e.story_id ? ` · AB#${esc(e.story_id)}` : ""}</div>`, "Empty.");
+  list("audit", s.audit, (e) => `<div class="meta">${new Date(e.at).toLocaleTimeString()} · <strong>${esc(e.actor)}</strong> ${esc(e.action)}${e.story_id ? ` · ${ref(e.story_id)}` : ""}</div>`, "Empty.");
 }
 
 async function refresh() {

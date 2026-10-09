@@ -1,10 +1,11 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import { timingSafeEqual } from "node:crypto";
 import { join } from "node:path";
-import { decideApproval } from "./approvals.ts";
+import { decideApproval, type ApprovalRow } from "./approvals.ts";
 import type { DB } from "./db.ts";
 import type { Deps } from "./deps.ts";
 import { handleMcp } from "./mcp.ts";
+import { generationMetrics, profileCard } from "./profiles.ts";
 import { listShortcuts, retireShortcut } from "./shortcuts.ts";
 import { isStopped, resume, stopAll } from "./stop.ts";
 import { startStory } from "./stories.ts";
@@ -48,7 +49,9 @@ export function createApp(db: DB, deps: Deps) {
       stopped: isStopped(db),
       stories: withSpend,
       runs: db.prepare("SELECT * FROM runs ORDER BY updated DESC LIMIT 50").all(),
-      approvals: db.prepare("SELECT * FROM approvals WHERE status = 'pending' ORDER BY created").all(),
+      approvals: (db.prepare("SELECT * FROM approvals WHERE status = 'pending' ORDER BY created").all() as ApprovalRow[])
+        .map((a) => (a.kind === "profile" ? { ...a, profile: profileCard(db, a.story_id) } : a)),
+      generations: generationMetrics(db).generations,
       shortcuts: listShortcuts(db).slice(0, 50),
       reuseCandidates: await deps.brake.reuseScan(),
       audit: db.prepare("SELECT * FROM audit ORDER BY seq DESC LIMIT 40").all(),

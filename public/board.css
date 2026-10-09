@@ -37,3 +37,14 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: v
 #chat-log p { margin: 0 0 6px; }
 #chat-form input { flex: 1; }
 .btns { display: flex; gap: 6px; margin-top: 8px; }
+.tag.approved { color: var(--ok); border-color: var(--ok); }
+.tag.proposed { color: var(--warn); border-color: var(--warn); }
+.tag.rejected, .tag.missing { color: var(--danger); border-color: var(--danger); }
+#generations { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+#generations table { border-collapse: collapse; width: 100%; font-size: 12px; }
+#generations th, #generations td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+#generations th:nth-child(-n+2), #generations td:nth-child(-n+2) { text-align: left; }
+pre.diff { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px; white-space: pre-wrap; font-size: 12px; margin: 8px 0; }
+pre.diff .add { color: var(--ok); }
+pre.diff .del { color: var(--danger); text-decoration: line-through; }
+.tip { font-size: 12px; margin: 4px 0; padding-left: 8px; border-left: 2px solid var(--line); }

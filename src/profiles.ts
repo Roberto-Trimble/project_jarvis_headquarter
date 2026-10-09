@@ -129,6 +129,19 @@ export function generationMetrics(db: DB, generation?: number) {
   };
 }
 
+/** What the owner sees on a profile approval card: the instructions against the parent's, and every tip. */
+export function profileCard(db: DB, id: string) {
+  const p = getProfile(db, id);
+  if (!p) return null;
+  const parent = p.parent_id ? getProfile(db, p.parent_id) : null;
+  return {
+    id: p.id, generation: p.generation, specialty: p.specialty, parentId: p.parent_id, rationale: p.rationale,
+    instructions: p.instructions, parentInstructions: parent?.instructions ?? "",
+    tips: ids(p.tip_ids).map((t) => db.prepare("SELECT id, type, title, body, status FROM shortcuts WHERE id = ?").get(t) ?? { id: t, status: "missing" }),
+    skills: ids(p.skill_ids),
+  };
+}
+
 /** Owner decision on a `profile` approval card. Only a proposed profile can change. */
 export function decideProfile(db: DB, actor: string, id: string, decision: "approved" | "denied"): void {
   const status: ProfileStatus = decision === "approved" ? "approved" : "rejected";
