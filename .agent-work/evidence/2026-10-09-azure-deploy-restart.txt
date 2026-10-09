@@ -1,0 +1,15 @@
+== restart at 2026-10-09T12:14:17.1477653-07:00
+restart exit: 0
+healthz attempt 1: {"ok":true,"stopped":false}
+== 2026-10-09T12:14:29.0947908-07:00 mode=gen0 host=https://jarvis-mcp-hackathon.azurewebsites.net
+builder-gen0 profiles: 1
+
+NOTE: the check above ran at 19:14:29 UTC, before the new container started (platform log: 'Container start method called' 19:14:32, 'Site started' 19:15:32 UTC). It reflects the old container. Recheck after the new container started:
+healthz: {"ok":true,"stopped":false}
+== 2026-10-09T12:15:56.8386174-07:00 mode=gen0 host=https://jarvis-mcp-hackathon.azurewebsites.net
+builder-gen0 profiles: 1
+
+Persistence check (after the new container started): GET /api/state with the board token (value read from app settings inside the command, not printed) returned 1 audit row:
+  seq 1  jarvis-service  profile_seeded  2026-10-09T19:03:00.649Z
+The seed row is written only when builder-gen0 is first inserted; it predates the 19:14 UTC restart, so the SQLite file in /home/data survived the restart and the seed did not run again.
+/home/data listing via Kudu VFS: jarvis.sqlite 102400 bytes (saved by write-to-temp + rename, so its creation time follows the last save).
