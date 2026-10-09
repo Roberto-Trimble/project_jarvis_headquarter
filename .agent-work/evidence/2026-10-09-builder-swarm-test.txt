@@ -1,0 +1,16 @@
+
+> test
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/rmadrid/source/repos/project-jarvis
+
+ ✓ test/shortcuts.test.ts (11 tests) 81ms
+ ✓ test/swarm.test.ts (13 tests) 207ms
+ ✓ test/loop.test.ts (11 tests) 166ms
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  11:43:03
+   Duration  2.03s (transform 667ms, setup 0ms, collect 1.48s, tests 454ms, environment 1ms, prepare 642ms)
+

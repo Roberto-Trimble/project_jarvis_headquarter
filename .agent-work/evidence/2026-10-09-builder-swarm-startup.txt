@@ -1,0 +1,13 @@
+2026-10-09 11:39, Windows laptop, Node 20.15.1. `npm start` (tsx, now a runtime dependency) run twice
+against the same fresh JARVIS_DATA_DIR on PORT 8798, /healthz fetched without auth each time, then the
+SQLite file inspected with sql.js.
+
+start 1 /healthz: {"ok":true,"stopped":false}
+start 2 /healthz: {"ok":true,"stopped":false}
+profiles after two starts: [["builder-gen0",0,"approved"]]
+seed audit rows: 1
+
+Board check (same day, offline demo with fakes): a seeded generation-1 profile proposal rendered as an
+approval card with the instructions diff against builder-gen0 and both included tips; Approve set the
+profile to approved (audit: owner approval_approved, owner profile_approved) and the Generations panel
+showed rows for generation 0 and 1.

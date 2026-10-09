@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "trigger_tag": "jarvis",
+  "concurrency": {
+    "max_subagent_runs": 3,
+    "max_active_stories": 1
+  },
+  "retries": {
+    "max_fix_rounds": 3,
+    "repeated_failure_threshold": 2
+  },
+  "budgets": {
+    "default_story_cap_microusd": 2000000,
+    "default_run_estimate_microusd": 150000
+  },
+  "tool_response_max_bytes": 90000,
+  "shortcuts": {
+    "default_expiry_days": 14,
+    "verification": "second_agent_or_check"
+  },
+  "reuse": {
+    "minimum_successes": 3,
+    "minimum_distinct_agents": 2
+  }
+}
