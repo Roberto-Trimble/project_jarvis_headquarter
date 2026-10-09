@@ -1,0 +1,14 @@
+Deploy of origin/main @ 41a0759 to jarvis-mcp-hackathon (prism-develop, Prism - Development), 2026-10-09.
+
+Worktree checks (local, Node v20.15.1):
+  npm ci: ok
+  npm run typecheck: tsc --noEmit, exit 0
+  npm test: vitest run, 3 files, 35 tests passed, exit 0
+  package.json: tsx is in dependencies
+
+Zip: tar -a, 80 entries, 120 KB, excludes node_modules, data, .git, .env, .env.*, *.sqlite
+az webapp deploy --type zip: Oryx build "Errors (0) Warnings (0)", "Deployment successful" at 19:01:44Z.
+The CLI then reported "Site failed to start within 10 mins". Cause: the container restarted for the app-settings change
+before any code was deployed, 
+pm start exited 254 with an empty wwwroot, and the platform blocked cold starts for a minute.
+The post-build container started at 19:01:55Z; /healthz returned {"ok":true,"stopped":false} afterwards.

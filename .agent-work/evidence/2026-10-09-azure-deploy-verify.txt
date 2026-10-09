@@ -1,0 +1,23 @@
+== 2026-10-09T12:14:07.8678558-07:00 mode=full host=https://jarvis-mcp-hackathon.azurewebsites.net
+-- GET /healthz
+{"ok":true,"stopped":false}
+-- MCP initialize (builder token)
+status 200; server jarvis 0.1.0; protocol 2025-03-26
+-- MCP tools/list (builder token)
+status 200; 16 tools: get_story, get_story_state, get_usage, record_activity, post_shortcut, verify_shortcut, search_shortcuts, list_unverified_shortcuts, use_shortcut, list_skills, run_skill, get_ci_status, get_profile, claim_task, report_pr, get_generation_metrics
+has get_profile: True; has claim_task: True; has merge_pull_request: False
+-- MCP initialize with no token
+status 401
+-- MCP initialize with a wrong token
+status 401
+-- get_profile builder-gen0 (builder token)
+status 200; isError False
+{"id":"builder-gen0","generation":0,"specialty":"general","instructions":"No accumulated tips yet. Follow the Builder agent's instructions and post what you learn.","tips":[],"skippedTips":0,"skills":[]}
+-- builder-gen0 count via get_generation_metrics: 1
+-- Board owner endpoints without the board token
+GET /api/state -> 401
+POST /api/stop -> 401
+POST /api/resume -> 401
+GET /api/state with a wrong token -> 401
+-- GET / (board page) -> 200
+-- healthz after checks: {"ok":true,"stopped":false}
