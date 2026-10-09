@@ -29,8 +29,8 @@ const VERIFICATION_BYPASS: readonly [string, RegExp][] = [
 
 // Posts are information, not instructions to other agents.
 const DIRECTIVES: readonly [string, RegExp][] = [
-  ["addresses_agent", /(?:^|\n)\s*@?(?:builder|verifier|planner|researcher|designer|council|project manager|jarvis|agents?)\s*[:,]\s*(?:please\s+)?(?:you\s+)?(?:must|should|now|go|do|run|take|stop|merge)\b/i],
-  ["assigns_work", /\bassign(?:ed)?\s+(?:this|the|a)\s+(?:story|task|work)\s+to\b|@(?:builder|verifier|planner|researcher|designer|council)\b/i],
+  ["addresses_agent", /(?:^|\n)\s*@?(?:builder|verifier|planner|researcher|designer|project manager|jarvis|agents?)\s*[:,]\s*(?:please\s+)?(?:you\s+)?(?:must|should|now|go|do|run|take|stop|merge)\b/i],
+  ["assigns_work", /\bassign(?:ed)?\s+(?:this|the|a)\s+(?:story|task|work)\s+to\b|@(?:builder|verifier|planner|researcher|designer)\b/i],
   ["override", /\bignore (?:all |any |the )?(?:previous|prior|above|your) (?:instructions|rules|prompt)/i],
   ["escalate", /\b(?:grant|give|elevate)\b.*\b(?:permission|access|admin|scope)\b/i],
 ];

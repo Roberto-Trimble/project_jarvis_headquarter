@@ -1,13 +1,12 @@
 # Project Jarvis
 
-An AI product team for a single product, built on Trimble Agent Studio: a Project Manager chat and visual command board that orchestrate a swarm of agents through the product's full development lifecycle. Project Jarvis turns ideas and the product's Azure Boards stories into scoped work, designs, GitHub pull requests, tested changes, and release proposals. A council reviews important decisions. Token Police (Studio's usage quotas plus AgentBrake) keeps execution within limits the team controls, and a Shortcut Board lets agents pass verified shortcuts to each other, so the team gets cheaper the more it works.
+An AI product team for a single product, built on Trimble Agent Studio: a Project Manager chat and visual command board that orchestrate a swarm of agents through the product's full development lifecycle. Project Jarvis turns ideas and the product's Azure Boards stories into scoped work, designs, GitHub pull requests, tested changes, and release proposals. Token Police (Studio's usage quotas plus AgentBrake) keeps execution within limits the team controls, and a Shortcut Board lets agents pass verified shortcuts to each other, so the team gets cheaper the more it works.
 
 ## Core experience
 
 - **Project Manager chat:** Your AI project manager for the product. Give direction, set priorities, approve decisions, and unblock work.
 - **Command board:** Track Azure Boards stories, active agents, dependencies, blockers, pull requests, checks, usage, shortcuts, and skill proposals in one place.
 - **Agent swarm:** Researcher, planner, designer, builder, and verifier cooperate on bounded tasks. Roles share evidence and handoffs rather than repeating work.
-- **Council:** Review consequential product and technical decisions, resolve disagreements, and surface tradeoffs for human approval.
 - **Token Police:** Studio's usage quotas cap every agent; AgentBrake adds per-story budgets, pauses work that hits them, flags repeated failures, and reports cost per accepted story. Deterministic, with zero model calls.
 - **Shortcut Board:** Agents post shortcuts, gotchas, and repo facts for each other. Only verified posts reach other agents, and repeated procedures become reusable skills after human approval.
 
@@ -18,7 +17,7 @@ Studio hosts the agents and their knowledge. It does not run code, store shared 
 | Jarvis piece | Where it lives | How |
 | --- | --- | --- |
 | Project Manager | Studio agent | Orchestration instructions as its system prompt; the team playbook in a Knowledge Library |
-| Swarm and Council | Studio agents, one per role | The Project Manager dispatches them as subagents through the Agent Service. Each agent picks its model from Trimble's model gateway (Gemini, OpenAI, Claude, Meta); Council seats use different families from the builder |
+| Swarm | Studio agents, one per role | The Project Manager dispatches them as subagents through the Agent Service. Each agent picks its model from Trimble's model gateway (Gemini, OpenAI, Claude, Meta); the verifier uses a different family from the builder |
 | Stories | Azure Boards | Agents read and update work items through the tool gateway |
 | Code, pull requests, CI | GitHub and GitHub Actions | The builder creates a branch, commits file changes, and opens the pull request through the tool gateway. There is no sandbox in Studio, so stories stay small. CI runs on the pull request |
 | Tool gateway | Jarvis service, registered in Studio as one MCP server | Hosts the official Azure DevOps and GitHub MCP servers, limited to the tools agents need. Real credentials stay in the Jarvis service |
@@ -41,13 +40,11 @@ flowchart TD
     JS["Jarvis service: triggers, tool gateway, state, Shortcut Board, AgentBrake"] -->|"start or resume runs"| PM
     subgraph Studio["Trimble Agent Studio"]
         PM["Project Manager agent"] -->|"subagent calls"| Swarm["Swarm agents: researcher, planner, designer, builder, verifier"]
-        PM -->|"subagent calls"| Council["Council agents"]
         KB["Knowledge Libraries: playbook and verified shortcuts"]
         Q["Usage quotas per agent"]
     end
     Swarm --> KB
     Swarm -->|"MCP tools"| JS
-    Council -->|"MCP tools"| JS
     JS -->|"work items"| AB
     JS -->|"branches, commits, pull requests"| GH
     GH --> CI["GitHub Actions: tests and checks"]
@@ -94,7 +91,7 @@ sequenceDiagram
     PM->>J: wait_for_ci (run suspends)
     GH->>J: webhook: CI finished
     J->>PM: resume with CI results
-    PM->>PM: verifier and Council review
+    PM->>PM: verifier checks the acceptance criteria
     PM->>B: request_approval (run suspends)
     B->>J: you approve
     J->>PM: resume
@@ -121,8 +118,7 @@ flowchart TD
     TR --> OK{"Checks pass?"}
     OK -->|"no, fix up to 3 rounds"| IM
     OK -->|"still failing"| BL["Back to the board: blocked, with reason and next action"]
-    OK -->|"yes"| CO["Council review"]
-    CO --> AP{"You approve the release?"}
+    OK -->|"yes"| AP{"You approve the release?"}
     AP -->|"changes requested"| IM
     AP -->|"yes"| RL["Merge and release"]
     RL --> JU["Update the story with PR link and evidence"]
@@ -137,7 +133,7 @@ Two layers. **Studio's Usage Quota Enforcement** is the hard ceiling: run limits
 
 - **Before every subagent run:** the Project Manager calls the Jarvis `admit_run` tool, and AgentBrake checks the story's budget. A denial makes the Project Manager call `request_approval`, which suspends the run and puts a "budget reached" card on the board.
 - **After every run:** the Jarvis service reads the run's usage from the Agent Service and settles it in AgentBrake. Missing cost stays "unknown"; nothing is estimated as fact.
-- **Repeated failures:** AgentBrake counts them and raises an exception card, which goes to the Council instead of yet another retry.
+- **Repeated failures:** AgentBrake counts them and raises an exception card, which goes to the owner on the board instead of yet another retry.
 - **Measured savings only:** the board shows cost per accepted story from the ledger. A shorter output is not reported as a saving.
 
 ```mermaid
@@ -237,13 +233,13 @@ stateDiagram-v2
 
 ## Hackathon scope
 
-Prove one complete loop: tag a small Azure Boards story `jarvis`, have agents produce a tested GitHub pull request, review it through the council, and return the evidence to the dashboard and the story. Show human approval (a suspended run resumed from the board), a budget pause (an AgentBrake denial), and STOP ALL working.
+Prove one complete loop: tag a small Azure Boards story `jarvis`, have agents produce a tested GitHub pull request, check it with the verifier, and return the evidence to the dashboard and the story. Show human approval (a suspended run resumed from the board), a budget pause (an AgentBrake denial), and STOP ALL working.
 
 Then show the team improving itself:
 
 - On the first story, an agent posts a shortcut; a second agent verifies it, and it appears in the Shortcuts library.
 - On the second, similar story, the builder retrieves it, and the board shows lower measured usage than on the first.
-- The verifier and Council seats each run `diffstat`. AgentBrake detects the repetition, drafts a skill, and a human approves it on the board.
+- Several builder instances each run `diffstat` on their own pull requests. AgentBrake detects the repetition across instances, drafts a skill, and a human approves it on the board. The approved skill ships in the next generation's builder profile.
 
 For a reliable demo, the board also has a "Run with Jarvis" button that starts a story exactly like the tag does, in case the service hook is slow on stage.
 
@@ -258,8 +254,9 @@ flowchart LR
         B1["Builder retrieves the shortcut"] --> B2["Board shows lower measured usage"]
     end
     subgraph SK["Skill proposal"]
-        C1["Verifier and Council seats each run diffstat"] --> C2["AgentBrake drafts a skill"]
+        C1["Several builder instances each run diffstat"] --> C2["AgentBrake drafts a skill"]
         C2 --> C3["You approve it on the board"]
+        C3 --> C4["Skill ships in the next generation's profile"]
     end
     A4 --> B1
 ```

@@ -10,7 +10,11 @@ awaiting_release → merged → done`, plus `blocked` and `stopped` from any sta
 ## Approval kinds
 - `sketch` — before any builder work on a new screen.
 - `budget` — when `admit_run` denies a run.
-- `release` — before merge. Requires PR link, CI result, and verifier report. The owner merges.
+- `release` — before merge. Requires PR link, CI result, and verifier report. After approval the
+  PM calls `merge_pull_request`, then `complete_story`.
+
+Repeated failures (the same check failing the same way) go to the owner on the board as an
+exception card, not to another retry.
 - `skill` — before an AgentBrake skill draft is installed (owner approves on the board).
 
 ## Status vocabulary

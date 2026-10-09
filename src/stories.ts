@@ -3,7 +3,7 @@ import type { Deps } from "./deps.ts";
 import { isStopped } from "./stop.ts";
 
 export const STAGES = [
-  "queued", "clarifying", "planned", "sketching", "building", "ci", "verifying", "council",
+  "queued", "clarifying", "planned", "sketching", "building", "ci", "verifying",
   "awaiting_release", "merged", "done", "blocked", "stopped",
 ] as const;
 export type Stage = (typeof STAGES)[number];

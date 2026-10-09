@@ -54,7 +54,7 @@ each adapter to the real service.
 ## Delivery loop
 
 Story tagged `jarvis` → clarify → plan → sketch and approve (new screens only) → implement
-on a branch → CI and verify (max 3 fix rounds) → you review and merge →
+on a branch → CI and verify (max 3 fix rounds) → you approve the release → Jarvis merges →
 update story with evidence → capture shortcuts and reuse candidates.
 
 ## Boundaries

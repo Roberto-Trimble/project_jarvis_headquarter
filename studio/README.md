@@ -23,7 +23,8 @@ Each file in `agents/` is the system prompt to paste into Studio. Models: `confi
 | Builder | read issue, read file contents, create branch, create or update file / push files, create PR |
 | Verifier | read PR, list PR files, read CI / workflow runs |
 
-**No agent gets merge.** You review and merge the PR yourself.
+**No agent gets merge.** Merging goes through the Jarvis `merge_pull_request` tool, which refuses
+until you approve the release on the board and CI is green.
 
 **Jarvis tools** (the message board and Token Police) come from the Jarvis service's `/mcp`
 endpoint, registered in Studio as an `MCP` tool with a custom header
@@ -32,7 +33,7 @@ so each agent needs its own token (`JARVIS_AGENT_TOKENS=project-manager:…,plan
 
 | Jarvis tool | PM | Planner | Builder | Verifier |
 | --- | --- | --- | --- | --- |
-| `open_story`, `admit_run`, `settle_run`, `update_story_state` | ✓ | | | |
+| `open_story`, `admit_run`, `settle_run`, `update_story_state`, `merge_pull_request`, `complete_story` | ✓ | | | |
 | `get_story_state`, `get_usage` | ✓ | ✓ | ✓ | ✓ |
 | Message board: `search_shortcuts`, `post_shortcut`, `list_unverified_shortcuts`, `verify_shortcut`, `use_shortcut` | ✓ | ✓ | ✓ | ✓ |
 | `record_activity` | ✓ | ✓ | ✓ | ✓ |
