@@ -27,6 +27,11 @@ CREATE TABLE IF NOT EXISTS shortcuts (
   title TEXT NOT NULL, body TEXT NOT NULL, evidence TEXT NOT NULL,
   status TEXT NOT NULL, verified_by TEXT, verify_evidence TEXT, uses INTEGER NOT NULL DEFAULT 0,
   expires TEXT NOT NULL, created TEXT NOT NULL, retired_reason TEXT);
+CREATE TABLE IF NOT EXISTS instances (
+  id TEXT PRIMARY KEY, story_id TEXT NOT NULL, profile_id TEXT NOT NULL, agent TEXT NOT NULL,
+  reservation_id TEXT NOT NULL UNIQUE, branch TEXT NOT NULL UNIQUE, pr_url TEXT, pr_number INTEGER,
+  status TEXT NOT NULL, ci_runs INTEGER NOT NULL DEFAULT 0, ci_failures INTEGER NOT NULL DEFAULT 0,
+  first_green TEXT, created TEXT NOT NULL, finished TEXT);
 CREATE TABLE IF NOT EXISTS events (key TEXT PRIMARY KEY, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS audit (
   seq INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, actor TEXT NOT NULL,
