@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS instances (
   reservation_id TEXT NOT NULL UNIQUE, branch TEXT NOT NULL UNIQUE, pr_url TEXT, pr_number INTEGER,
   status TEXT NOT NULL, ci_runs INTEGER NOT NULL DEFAULT 0, ci_failures INTEGER NOT NULL DEFAULT 0,
   first_green TEXT, created TEXT NOT NULL, finished TEXT);
+CREATE TABLE IF NOT EXISTS reservations (
+  id TEXT PRIMARY KEY, story_id TEXT NOT NULL, role TEXT NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS profiles (
   id TEXT PRIMARY KEY, generation INTEGER NOT NULL, parent_id TEXT, specialty TEXT NOT NULL,
   instructions TEXT NOT NULL, tip_ids TEXT NOT NULL, skill_ids TEXT NOT NULL, status TEXT NOT NULL,

@@ -15,7 +15,7 @@ export async function setup() {
     policy: loadPolicy(),
     studio, gateway, brake,
     scope: { project: "demo-project", repo: "demo-org/demo-repo" },
-    agentTokens: new Map([["pm-token", "project-manager"], ["builder-token", "builder"], ["verifier-token", "verifier"]]),
+    agentTokens: new Map([["pm-token", "project-manager"], ["builder-token", "builder"], ["verifier-token", "verifier"], ["curator-token", "curator"]]),
     boardToken: null,
     hookSecrets: { azdoUser: "hook", azdoPassword: "pw", github: "gh-secret" },
   };

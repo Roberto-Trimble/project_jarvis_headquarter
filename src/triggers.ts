@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { requestApproval, APPROVAL_KINDS, type ApprovalKind } from "./approvals.ts";
 import { audit, firstSeen, now, type DB } from "./db.ts";
 import type { Deps } from "./deps.ts";
+import { recordCiRun } from "./instances.ts";
 import { startStory, updateStage, type StartResult } from "./stories.ts";
 
 function safeEqual(a: string, b: string): boolean {
@@ -41,12 +42,13 @@ export async function onAzureBoardsHook(db: DB, deps: Deps, payload: any): Promi
   return startStory(db, deps, id, "azure-boards-hook", { requireTag: true });
 }
 
-/** CI finished on a Jarvis PR: resume the run waiting in wait_for_ci. */
-export async function onGithubHook(db: DB, deps: Deps, event: string | undefined, deliveryId: string | undefined, payload: any): Promise<{ resumed: string[] } | { ignored: string }> {
+/** CI finished on a Jarvis PR: count it against the builder instance, and resume the run waiting in wait_for_ci. */
+export async function onGithubHook(db: DB, deps: Deps, event: string | undefined, deliveryId: string | undefined, payload: any): Promise<{ resumed: string[]; instance?: string } | { ignored: string }> {
   if (event !== "workflow_run" || payload?.action !== "completed") return { ignored: "event_type" };
   if (!deliveryId || !firstSeen(db, `gh:${deliveryId}`)) return { ignored: "duplicate" };
   const wr = payload.workflow_run ?? {};
   if (!String(wr.head_branch ?? "").startsWith("jarvis/")) return { ignored: "not_jarvis_branch" };
+  const instance = recordCiRun(db, String(wr.head_branch), wr.conclusion);
   const prNumbers: number[] = (wr.pull_requests ?? []).map((p: any) => Number(p.number));
   const resumed: string[] = [];
   for (const pr of prNumbers) {
@@ -62,7 +64,7 @@ export async function onGithubHook(db: DB, deps: Deps, event: string | undefined
       resumed.push(w.run_id);
     }
   }
-  return { resumed };
+  return instance ? { resumed, instance } : { resumed };
 }
 
 /**

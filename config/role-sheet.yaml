@@ -10,6 +10,7 @@ roles:
   # The verifier is the only independent check, so it uses a different family from the builder.
   verifier: { family: openai, tier: gpt-latest-reasoning, model: TBD }
   designer: { family: claude, model: TBD }  # later, for new screens
+  curator:  { family: TBD, model: TBD }  # distills verified tips into builder profiles; owner to choose
 rules:
   verifier_differs_from_builder_family: true
   automatic_paid_fallback: false
