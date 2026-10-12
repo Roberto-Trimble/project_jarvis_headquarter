@@ -66,3 +66,4 @@ update story with evidence → capture shortcuts and reuse candidates.
 - Publishing and merging require human approval. New screens require sketch approval.
 - Credentials stay in the Jarvis service. They never reach Studio, a prompt, or a model.
 - STOP ALL works without any model.
+Swarm connected.
