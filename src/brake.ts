@@ -40,15 +40,15 @@ const SCOPE = "product";
 /** Mirrors AgentBrake's reserve/settle semantics in memory, for tests and the offline demo. */
 export class FakeBrake implements Brake {
   private reservations = new Map<string, { storyId: string; estimate: number; status: "active" | "settled" }>();
-  private usage: { storyId: string; cost: number | null }[] = [];
+  private usage: { storyId: string; cost: number | null; estimate: number }[] = [];
   private activities = new Map<string, Activity>();
 
   async admit(id: string, storyId: string, estimate: number, cap: number): Promise<Admission> {
     const old = this.reservations.get(id);
     if (old) return { decision: "REPLAY", dispatch: false };
     const events = this.usage.filter((u) => u.storyId === storyId);
-    if (events.some((u) => u.cost === null)) return { decision: "HOLD", reason: "unknown_task_cost", dispatch: false };
-    const spent = events.reduce((s, u) => s + (u.cost ?? 0), 0);
+    // Studio doesn't report run cost yet, so an unknown cost is charged at its estimate (owner decision 2026-10-12).
+    const spent = events.reduce((s, u) => s + (u.cost ?? u.estimate), 0);
     const reserved = [...this.reservations.values()]
       .filter((r) => r.storyId === storyId && r.status === "active")
       .reduce((s, r) => s + r.estimate, 0);
@@ -61,7 +61,7 @@ export class FakeBrake implements Brake {
     if (!r || r.storyId !== usage.storyId) throw new Error("missing or mismatched reservation");
     if (r.status === "settled") return;
     r.status = "settled";
-    this.usage.push({ storyId: usage.storyId, cost: usage.costMicroUsd });
+    this.usage.push({ storyId: usage.storyId, cost: usage.costMicroUsd, estimate: r.estimate });
   }
   async recordActivity(a: Activity) {
     this.activities.set(a.eventId, a);

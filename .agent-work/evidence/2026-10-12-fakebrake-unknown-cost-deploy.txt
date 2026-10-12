@@ -1,0 +1,5 @@
+== 2026-10-12T14:34:45.8438024-07:00 post-deploy check, jarvis-mcp-hackathon (prism-develop), branch jarvis/fakebrake-unknown-cost
+GET /healthz: {"ok":true,"stopped":false}
+app setting names: GITHUB_REPO, JARVIS_AGENT_TOKENS, JARVIS_BOARD_TOKEN, JARVIS_DATA_DIR, SCM_DO_BUILD_DURING_DEPLOYMENT, WEBSITES_ENABLE_APP_SERVICE_STORAGE
+agent token roles: True (pm token length 64)
+get_story_state 1234 (via /mcp/<pm token>): HTTP 200; stage=blocked; title=Add "Swarm connected." to README; blocked_reason=admit_run denied the builder run (reason: unknown_task_cost). The planner run's cost was also recorded as unknown. A budget approval is required, but request_approval is not available to the PM in this run.; spent={"microUsd":0,"unknownRuns":0}
