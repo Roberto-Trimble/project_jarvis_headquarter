@@ -1,0 +1,33 @@
+== 2026-10-12T14:30:17.5889781-07:00 branch jarvis/fakebrake-unknown-cost (worktree of origin/main c44c2a8 + fix)
+-- npm run typecheck
+
+> typecheck
+> tsc --noEmit
+
+exit 0
+-- npm test
+
+> test
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/rmadrid/source/repos/jarvis-fix
+
+ Γ£ô test/shortcuts.test.ts (11 tests) 94ms
+ Γ£ô test/swarm.test.ts (13 tests) 253ms
+ Γ£ô test/loop.test.ts (13 tests) 244ms
+ Γ£ô test/mcp.test.ts (11 tests) 328ms
+
+ Test Files  4 passed (4)
+      Tests  48 passed (48)
+   Start at  14:30:22
+   Duration  2.28s (transform 833ms, setup 0ms, collect 2.41s, tests 919ms, environment 1ms, prepare 701ms)
+
+exit 0
+-- npm run scan:secrets
+
+> scan:secrets
+> tsx scripts/scan-secrets.ts
+
+scan:secrets ok (65 files)
+exit 0

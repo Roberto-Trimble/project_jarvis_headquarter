@@ -83,6 +83,30 @@ describe("Token Police", () => {
     expect((await callTool("admit_run", { storyId: "101", role: "verifier", estimateMicroUsd: 150000 }, pm)).result).toEqual({ admitted: false, reason: "budget" });
   });
 
+  it("a run settled with unknown cost doesn't block the next admit_run", async () => {
+    const { db, deps } = await setup();
+    await startStory(db, deps, "101", "owner", { requireTag: false });
+    const pm = { db, deps, agent: "project-manager" };
+    const planner = (await callTool("admit_run", { storyId: "101", role: "planner" }, pm)).result as { reservationId: string };
+    const settled = await callTool("settle_run", { storyId: "101", reservationId: planner.reservationId, subagentRunId: "run-planner" }, pm);
+    expect(settled.result).toEqual({ settled: true, costMicroUsd: "unknown" });
+    expect((await callTool("admit_run", { storyId: "101", role: "builder" }, pm)).result).toMatchObject({ admitted: true });
+    expect(await deps.brake.spent("101")).toEqual({ microUsd: 0, unknownRuns: 1 });
+  });
+
+  it("charges unknown-cost runs at their estimate against the cap", async () => {
+    const { db, deps } = await setup();
+    await startStory(db, deps, "101", "owner", { requireTag: false });
+    db.prepare("UPDATE stories SET budget_cap = 300000 WHERE id = '101'").run();
+    const pm = { db, deps, agent: "project-manager" };
+    const admit = async () => (await callTool("admit_run", { storyId: "101", role: "builder", estimateMicroUsd: 150000 }, pm)).result as { admitted: boolean; reservationId?: string; reason?: string };
+    const first = await admit();
+    expect(first.admitted).toBe(true);
+    await callTool("settle_run", { storyId: "101", reservationId: first.reservationId, subagentRunId: "run-1" }, pm);
+    expect(await admit()).toMatchObject({ admitted: true });
+    expect(await admit()).toEqual({ admitted: false, reason: "budget" });
+  });
+
   it("finds repeated diffstat runs across agents", async () => {
     const { db, deps } = await setup();
     for (const agent of ["verifier", "critic", "security"]) {
